@@ -1,0 +1,49 @@
+name: Notify when Alexander Panos goes live
+
+on:
+  schedule:
+    # GitHub Actions evaluates the channel roughly every 5 minutes.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+# Needed only to save the last notified stream ID in state.json.
+permissions:
+  contents: write
+
+# Do not allow two checks to notify simultaneously or race while saving state.
+concurrency:
+  group: twitch-stream-notifier
+  cancel-in-progress: false
+
+jobs:
+  check-stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Check Twitch and notify Telegram
+        env:
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node src/check-stream.mjs
+
+      - name: Save notification state
+        run: |
+          if git diff --quiet -- state.json; then
+            echo "No state change to save."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git commit -m "chore: update stream notification state"
+          git push

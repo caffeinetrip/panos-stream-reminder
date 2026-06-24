@@ -1,0 +1,7 @@
+# Local secrets and editor files
+.env
+.env.*
+.vscode/
+
+# Debug output
+*.log
