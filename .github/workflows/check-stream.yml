@@ -47,3 +47,4 @@ jobs:
           git add state.json
           git commit -m "chore: update stream notification state"
           git push
+
