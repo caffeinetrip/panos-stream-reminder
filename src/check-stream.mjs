@@ -1,8 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-const CHANNEL_LOGIN = 'alexanderpanos';
+const CHANNEL_LOGIN = 'mogoon14';
 const CHANNEL_URL = `https://www.twitch.tv/${CHANNEL_LOGIN}`;
 const STATE_FILE = new URL('../state.json', import.meta.url);
+const FORCE_TEST = process.env.FORCE_TEST === 'true';
 
 const requiredEnvironment = [
   'TWITCH_CLIENT_ID',
@@ -70,18 +71,7 @@ async function getLiveStream(accessToken) {
   return payload.data?.[0] ?? null;
 }
 
-async function sendTelegramMessage(stream) {
-  const title = compact(stream.title || 'Без названия', 1_000);
-  const game = compact(stream.game_name || 'Категория не указана', 250);
-  const message = [
-    '🔴 <b>Alexander Panos в эфире!</b>',
-    '',
-    `<b>Название:</b> ${escapeHtml(title)}`,
-    `<b>Категория:</b> ${escapeHtml(game)}`,
-    '',
-    `<a href="${CHANNEL_URL}">Смотреть стрим на Twitch</a>`,
-  ].join('\n');
-
+async function sendTelegramText(message) {
   const endpoint = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
   const payload = await requestJson(endpoint, {
     method: 'POST',
@@ -99,6 +89,21 @@ async function sendTelegramMessage(stream) {
   }
 }
 
+async function sendTelegramMessage(stream) {
+  const title = compact(stream.title || 'Без названия', 1_000);
+  const game = compact(stream.game_name || 'Категория не указана', 250);
+  const message = [
+    '🔴 <b>mogoon14 в эфире!</b>',
+    '',
+    `<b>Название:</b> ${escapeHtml(title)}`,
+    `<b>Категория:</b> ${escapeHtml(game)}`,
+    '',
+    `<a href="${CHANNEL_URL}">Смотреть стрим на Twitch</a>`,
+  ].join('\n');
+
+  await sendTelegramText(message);
+}
+
 async function readState() {
   try {
     return JSON.parse(await readFile(STATE_FILE, 'utf8'));
@@ -110,6 +115,15 @@ async function readState() {
 
 async function main() {
   const state = await readState();
+
+  if (FORCE_TEST) {
+    await sendTelegramText(
+      '✅ <b>Тест пройден.</b>\nБот может отправлять уведомления в этот чат.',
+    );
+    console.log('Telegram test message sent.');
+    return;
+  }
+
   const accessToken = await getAppAccessToken();
   const stream = await getLiveStream(accessToken);
 

@@ -1,10 +1,16 @@
-name: Notify when Alexander Panos goes live
+name: Notify when mogoon14 goes live
 
 on:
   schedule:
     # GitHub Actions evaluates the channel roughly every 5 minutes.
     - cron: '*/5 * * * *'
   workflow_dispatch:
+    inputs:
+      send_test:
+        description: Send a Telegram test message without checking Twitch
+        required: false
+        default: false
+        type: boolean
 
 # Needed only to save the last notified stream ID in state.json.
 permissions:
@@ -33,6 +39,7 @@ jobs:
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_TEST: ${{ inputs.send_test }}
         run: node src/check-stream.mjs
 
       - name: Save notification state
