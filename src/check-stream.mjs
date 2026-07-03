@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-const CHANNEL_LOGIN = 'mogoon14';
+const CHANNEL_LOGIN = 'alexanderpanos';
 const CHANNEL_URL = `https://www.twitch.tv/${CHANNEL_LOGIN}`;
 const STATE_FILE = new URL('../state.json', import.meta.url);
 const FORCE_TEST = process.env.FORCE_TEST === 'true';
@@ -93,7 +93,7 @@ async function sendTelegramMessage(stream) {
   const title = compact(stream.title || 'Без названия', 1_000);
   const game = compact(stream.game_name || 'Категория не указана', 250);
   const message = [
-    '🔴 <b>mogoon14 в эфире!</b>',
+    '🔴 <b>Alexander Panos в эфире!</b>',
     '',
     `<b>Название:</b> ${escapeHtml(title)}`,
     `<b>Категория:</b> ${escapeHtml(game)}`,
